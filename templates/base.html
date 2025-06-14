@@ -12,41 +12,50 @@
 <body>
     <header class="p-3 mb-3 border-bottom">
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-          <div class="container-fluid">
-              <a class="navbar-brand" href="{% url 'home' %}">My E-Commerce</a>
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{% url 'home' %}">My E-Commerce</a>
 
-              <!-- Brand and toggle get grouped for better mobile display -->
-              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                  <span class="navbar-toggler-icon"></span>
-              </button>
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-              <!-- Collect the nav links, forms, and other content for toggling -->
-              <div class="collapse navbar-collapse" id="navbarContent">
-                  <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                      {% if user.is_authenticated %}
-                          <li class="nav-item"><a href="{% url 'profile' %}">Profile</a></li>
-                          <li><a href="#">My Orders</a></li>
-                          <li class="nav-item"><a href="{% url 'logout' %}">Logout</a></li>
-                          {% if user.is_store_manager %}
-                            <li class="nav-item"><a class="nav-link" href="#"> My Store </a></li>
-                          {%  endif %}
-                      {%  else %}
-                          <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
-                          <li class="nav-item"><a class="nav-link" href="{% url 'signup' %}">Sign Up</a></li>
-                      {% endif %}
-                      {% if not user.is_store_manager %}
-                          <li class="nav-item"><a class="nav-link" href="#">Cart</a>
-                          <li class="nav-item"><a  class="nav-link" href="#">My Wishlist</a></li>
-                      {% endif %}
-                  </ul>
-                  <form class="d-flex">
-                    <div class="form-group">
-                      <input type="search" class="form-control me-2" placeholder="Search">
-                    </div>
-                    <button class="btn btn-outline-success" type="submit">Submit</button>
-                  </form>
-              </div>
-          </div>
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        {% if user.is_authenticated %}
+                            <li class="nav-item"><a href="{% url 'profile' %}">Profile</a></li>
+                            <li><a href="#">My Orders</a></li>
+                            <li class="nav-item"><a href="{% url 'logout' %}">Logout</a></li>
+                            {% if user.is_store_manager %}
+                                <li class="nav-item"><a class="nav-link" href="#"> My Store </a></li>
+                            {%  endif %}
+                        {%  else %}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'signup' %}">Sign Up</a></li>
+                        {% endif %}
+                        {% if not user.is_store_manager %}
+                            <li class="nav-item"><a class="nav-link" href="#">Cart</a>
+                            <li class="nav-item"><a  class="nav-link" href="#">My Wishlist</a></li>
+                        {% endif %}
+                    </ul>
+                    <form class="d-flex">
+                        <div class="form-group">
+                            <input type="search" class="form-control me-2" placeholder="Search">
+                        </div>
+                        <button class="btn btn-outline-success" type="submit">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </nav>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb" style="list-style: none; padding: 0;">
+                <li class="breadcrumb-item"><a href="#" style="text-decoration: none; color: black;">Electronic</a></li>
+                <li class="breadcrumb-item"><a href="#" style="text-decoration: none; color: black;">Books</a></li>
+                <li class="breadcrumb-item"><a href="#" style="text-decoration: none; color: black;">Clothing</a></li>
+                <li class="breadcrumb-item"><a href="#" style="text-decoration: none; color: black;">Appliances</a></li>
+                <li class="breadcrumb-item"><a href="#" style="text-decoration: none; color: black;">Home & Furniture</a></li>
+              </ol>
         </nav>
     </header>
 
