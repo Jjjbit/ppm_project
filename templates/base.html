@@ -26,6 +26,7 @@
                         {% if user.is_authenticated %}
                             <li class="nav-item"><a href="{% url 'profile' %}">Profile</a></li>
                             <li><a href="#">My Orders</a></li>
+                            <li class="nav-item"><a  class="nav-link" href="#">My Wishlist</a></li>
                             <li class="nav-item"><a href="{% url 'logout' %}">Logout</a></li>
                             {% if user.is_store_manager %}
                                 <li class="nav-item"><a class="nav-link" href="#"> My Store </a></li>
@@ -35,8 +36,7 @@
                             <li class="nav-item"><a class="nav-link" href="{% url 'signup' %}">Sign Up</a></li>
                         {% endif %}
                         {% if not user.is_store_manager %}
-                            <li class="nav-item"><a class="nav-link" href="#">Cart</a>
-                            <li class="nav-item"><a  class="nav-link" href="#">My Wishlist</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#">Cart</a></li>
                         {% endif %}
                     </ul>
                     <form class="d-flex">
