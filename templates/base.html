@@ -50,11 +50,9 @@
         </nav>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb" style="list-style: none; padding: 0;">
-                <li class="breadcrumb-item"><a href="#" style="text-decoration: none; color: black;">Electronic</a></li>
-                <li class="breadcrumb-item"><a href="#" style="text-decoration: none; color: black;">Books</a></li>
-                <li class="breadcrumb-item"><a href="#" style="text-decoration: none; color: black;">Clothing</a></li>
-                <li class="breadcrumb-item"><a href="#" style="text-decoration: none; color: black;">Appliances</a></li>
-                <li class="breadcrumb-item"><a href="#" style="text-decoration: none; color: black;">Home & Furniture</a></li>
+                {% for category in categories %}
+                    <li class="breadcrumb-item"><a href="{% url 'category_products' category.id %}" style="text-decoration: none; color: black;">{{ category.name }}</a></li>
+                {% endfor %}
               </ol>
         </nav>
     </header>

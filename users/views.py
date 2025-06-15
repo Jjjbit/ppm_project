@@ -27,8 +27,6 @@ class MyLoginView(LoginView):
     form_class = CustomAuthenticationForm
     template_name = "registration/login.html"
 
-class WishlistView(LoginRequiredMixin, TemplateView):
-    template_name = 'wishlist.html'
 
 class CustomPasswordChangeView(PasswordChangeView):
     template_name = 'registration/password_change_form.html'
@@ -38,5 +36,17 @@ class CustomPasswordChangeDoneView(PasswordChangeDoneView):
     template_name = 'registration/password_change_done.html'
 
 @login_required
-def profile_view(request):
-    return render(request, 'profile.html')
+class ProfileView(LoginRequiredMixin, TemplateView):
+    template_name = "profile.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["user"] = self.request.user
+        return context
+
+@login_required
+def edit_profile_view(request):
+    if request.method == 'POST':
+        # Handle profile editing logic here
+        pass
+    return render(request, 'edit_profile.html')
