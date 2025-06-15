@@ -23,7 +23,6 @@ class CustomUserChangeForm(UserChangeForm):
             "username",
             "email",
             'address',
-            'is_store_manager',
         ) # new
 
 class CustomAuthenticationForm(AuthenticationForm):
@@ -41,22 +40,5 @@ class CustomAuthenticationForm(AuthenticationForm):
                 code="inactive",
             )
 
-
-class CustomUserChangePasswordForm(UserChangeForm):
-    password = forms.CharField(
-        label="New Password",
-        widget=forms.PasswordInput,
-        help_text="Enter your new password.",
-    )
-
-    class Meta:
-        model = CustomUser
-        fields = (
-            "username",
-            "email",
-            'address',
-            'is_store_manager',
-            'password'
-        )  # new
 
 
