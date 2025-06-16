@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }}{% endblock %}
+
+{% block content %}
+    <h2>{{ category.name }}</h2>
+    <div class="row">
+        {% for product in products %}
+            <div class="col-sm-6 col-md-4">
+                <div class="thumbnail">
+                    <img src="https://placehold.co/300x200" class="card-img-top" alt="{{ product.name }}">
+                    <div class="card-body">
+                        <h3 class="card-title">{{ product.name }}</h3>
+                        <p>
+                            <a href="#" class="btn btn-primary">Details</a>
+                            <button class="btn btn-success add-to-cart" data-product="{{ product.name}}">Add to Cart</button>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>No products in this category.</p>
+        {% endfor %}
+    </div>
+
+    <div class="d-flex justify-content-center">
+        <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <a class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+{% endblock %}
