@@ -29,7 +29,7 @@
                             <li class="nav-item"><a  class="nav-link" href="#">My Wishlist</a></li>
                             <li class="nav-item"><a href="{% url 'logout' %}">Logout</a></li>
                             {% if user.is_store_manager %}
-                                <li class="nav-item"><a class="nav-link" href="#"> My Store </a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'store_dashboard' %}"> My Store </a></li>
                             {%  endif %}
                         {%  else %}
                             <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
@@ -47,13 +47,6 @@
                     </form>
                 </div>
             </div>
-        </nav>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb" style="list-style: none; padding: 0;">
-                {% for category in categories %}
-                    <li class="breadcrumb-item"><a href="{% url 'category_products' category.id %}" style="text-decoration: none; color: black;">{{ category.name }}</a></li>
-                {% endfor %}
-              </ol>
         </nav>
     </header>
 
