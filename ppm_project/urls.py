@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 from store.views import ProductDetailView, CategoryProductsView
+from store.views import add_to_cart
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,5 +29,6 @@ urlpatterns = [
     path('users/', include('django.contrib.auth.urls')), #new
     path('store/', include('store.urls')),  # new
     path("products/<int:pk>/", ProductDetailView.as_view(), name="product_detail"),
+    path('add-to-cart/<int:product_id>/', add_to_cart, name='add_to_cart'),
 
 ]

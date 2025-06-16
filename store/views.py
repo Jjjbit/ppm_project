@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView, TemplateView
+from pyexpat.errors import messages
+
 from .models import Product, Category, Cart, CartItem, Order, OrderItem
 #from django.utils import timezone
 from django.shortcuts import render, redirect , get_object_or_404
@@ -10,6 +12,10 @@ from django.core.exceptions import PermissionDenied
 #from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from users.models import CustomUser
+
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_POST
+
 #from django.http import HttpResponseRedirect
 
 
@@ -51,6 +57,7 @@ class StoreCategoryProductsView(ListView):
         context["has_products"] = self.get_queryset().exists()
         return context
 
+
 #mostra tutti i prodotti di un negozio
 class StoreView(ListView):
     model = Product
@@ -84,6 +91,7 @@ class ProductListView(ListView):
         context["categories"] = Category.objects.all()
         return context
 
+
 #mostra i dettagli di un prodotto specifico
 class ProductDetailView(DetailView):
     model = Product
@@ -93,6 +101,48 @@ class ProductDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context['related_products'] = Product.objects.filter(category=self.object.category).exclude(id=self.object.id)[:4]
         return context
+
+@csrf_protect
+@require_POST
+def add_to_cart(request, product_id):
+    try:
+        product = Product.objects.get(id=product_id)
+    except Product.DoesNotExist:
+        messages.error(request, "Product not found.")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
+    if product.stock <= 0:
+        messages.error(request, "Product is out of stock.")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
+    if request.user.is_authenticated:
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+        cart_item = CartItem.objects.filter(cart=cart, product=product).first()
+        if cart_item:
+            if cart_item.quantity < product.stock:
+                cart_item.quantity += 1
+                cart_item.save()
+            else:
+                messages.warning(request, "Cannot add more than available stock.")
+                return redirect(request.META.get('HTTP_REFERER', '/'))
+        else:
+            CartItem.objects.create(cart=cart, product=product, quantity=1)
+            messages.success(request, "Successfully added to cart.")
+    else:
+        session_cart = request.session.get('cart', {})
+        current_qty = session_cart.get(str(product.id), 0)
+
+        if current_qty < product.stock:
+            session_cart[str(product.id)] = current_qty + 1
+            request.session['cart'] = session_cart
+            messages.success(request, "Successfully added to cart.")
+        else:
+            messages.warning(request, "Cannot add more than available stock.")
+
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
 
 class WishlistView(LoginRequiredMixin, TemplateView):
     template_name = 'wishlist.html'
@@ -143,13 +193,4 @@ def delete_product(request, pk):
     product.delete()
     return redirect('product_list')
 
-
-
-
-# def product_list(request):
-#     products = Product.objects.all()
-#     paginator = Paginator(products, 9)
-#     page_number = request.GET.get('page')
-#     page_obj = paginator.get_page(page_number)
-#     return render(request, 'product_list.html', {'page_obj': page_obj})
 
