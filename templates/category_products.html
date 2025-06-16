@@ -11,10 +11,13 @@
                     <img src="https://placehold.co/300x200" class="card-img-top" alt="{{ product.name }}">
                     <div class="card-body">
                         <h3 class="card-title">{{ product.name }}</h3>
-                        <p>
+                        <div>
                             <a href="#" class="btn btn-primary">Details</a>
-                            <button class="btn btn-success add-to-cart" data-product="{{ product.name}}">Add to Cart</button>
-                        </p>
+                            <form method="post" action="{% url 'add_to_cart' product.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary">Add to Cart</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -22,7 +25,6 @@
             <p>No products in this category.</p>
         {% endfor %}
     </div>
-
     <div class="d-flex justify-content-center">
         <nav>
             <ul class="pagination">
@@ -44,4 +46,23 @@
             </ul>
         </nav>
     </div>
+
+    {% if messages %}
+        <div id="message-container">
+            {% for message in messages %}
+                <div class="alert alert-success" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <script>
+            setTimeout(function () {
+                const container = document.getElementById("message-container");
+                if (container) {
+                    container.style.display = "none";
+                }
+            }, 3000);
+        </script>
+    {% endif %}
 {% endblock %}
