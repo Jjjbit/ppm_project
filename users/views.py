@@ -35,7 +35,7 @@ class CustomPasswordChangeView(PasswordChangeView):
 class CustomPasswordChangeDoneView(PasswordChangeDoneView):
     template_name = 'registration/password_change_done.html'
 
-@login_required
+
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = "profile.html"
 
