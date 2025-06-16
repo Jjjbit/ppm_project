@@ -66,12 +66,18 @@ class StoreView(ListView):
     def get_queryset(self):
         return Product.objects.filter(seller=self.request.user)
 
+    def dispatch(self, request, *args, **kwargs):
+        self.seller = CustomUser.objects.get(pk=self.kwargs['seller_id'])
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["seller"] = self.seller
+        context = (super().get_context_data(**kwargs))
+        user = self.request.user
+
+        context["seller"] = self.seller #seller è l'utente proprietario del negozio
         context["categories"] = Category.objects.filter(product__seller=self.seller).distinct()
-        context["is_owner"] = self.request.user.is_authenticated and self.request.user == self.seller
-        return context
+        context["is_owner"] = self.request.user.is_authenticated and self.request.user == self.seller #is_owner booleano che indica se l'utente corrente è il proprietario del negozio
+        context["is_store_manage"] = user.is_authenticated and user.is_store_manager #is_store_manage booleano che indica se l'utente corrente è un gestore del negozio
 
 
 #mostra tutti i prodotti del sito, con paginazione e filtro per categoria
