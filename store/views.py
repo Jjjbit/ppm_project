@@ -5,27 +5,72 @@ from .models import Product, Category, Cart, CartItem, Order, OrderItem
 from django.shortcuts import render, redirect , get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import ProductForm, CategoryForm
-from .permissions import IsStoreManager
+#from .permissions import IsStoreManager
 from django.core.exceptions import PermissionDenied
 #from django.core.paginator import Paginator
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from users.models import CustomUser
 #from django.http import HttpResponseRedirect
 
 
-def category_products(request, category_id):
-    category = get_object_or_404(Category, id=category_id)
-    products = Product.objects.filter(category=category)
-    return render(request, 'category_products.html', {
-        'category': category,
-        'products': products
-    })
+#mostra tutti i prodotti di una categoria specifica del sito
+class CategoryProductsView(ListView):
+    model = Product
+    template_name = "category_products.html"
+    paginate_by = 9
+
+    def get_queryset(self):
+        category_id = self.kwargs["category_id"]
+        category = get_object_or_404(Category, id=category_id)
+        return Product.objects.filter(category=category)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category_id = self.kwargs["category_id"]
+        context["category"] = get_object_or_404(Category, id=category_id)
+        context["categories"] = Category.objects.all()
+        return context
+
+#mostra tutti i prodotti di una categoria specifica di un negozio
+class StoreCategoryProductsView(ListView):
+    model = Product
+    template_name = "store_category_products.html"
+    paginate_by = 9
+
+    def get_queryset(self):
+        seller_id = self.kwargs['seller_id']
+        category_id = self.kwargs['category_id']
+        return Product.objects.filter(seller__id=seller_id, category__id=category_id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        seller_id = self.kwargs['seller_id']
+        context['seller'] = get_object_or_404(CustomUser, id=seller_id)
+        context['category'] = get_object_or_404(Category, id=self.kwargs['category_id'])
+        context["is_owner"] = self.request.user.is_authenticated and self.request.user == self.seller
+        context["has_products"] = self.get_queryset().exists()
+        return context
+
+#mostra tutti i prodotti di un negozio
+class StoreView(ListView):
+    model = Product
+    template_name = "store_dashboard.html"
+
+    def get_queryset(self):
+        return Product.objects.filter(seller=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["seller"] = self.seller
+        context["categories"] = Category.objects.filter(product__seller=self.seller).distinct()
+        context["is_owner"] = self.request.user.is_authenticated and self.request.user == self.seller
+        return context
 
 
-
+#mostra tutti i prodotti del sito, con paginazione e filtro per categoria
 class ProductListView(ListView):
     model = Product
     template_name = 'product_list.html'
-    #context_object_name = 'products'
     paginate_by = 9
 
     def get_queryset(self):
@@ -34,10 +79,15 @@ class ProductListView(ListView):
             return Product.objects.filter(category_id=category_id)
         return Product.objects.all()
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["categories"] = Category.objects.all()
+        return context
+
+#mostra i dettagli di un prodotto specifico
 class ProductDetailView(DetailView):
     model = Product
     template_name = 'product_detail.html'
-    #context_object_name = 'products'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -73,10 +123,17 @@ def add_product(request):
 @store_manager_required
 def edit_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
-    form = ProductForm(request.POST or None, instance=product)
-    if form.is_valid():
-        form.save()
-        return redirect('product_list')
+
+    if request.user != product.seller:
+        raise PermissionDenied
+
+    if request.method == "POST":
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm(instance=product)
     return render(request, 'edit_product.html', {'form': form})
 
 @login_required
