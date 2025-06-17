@@ -24,13 +24,14 @@
                 <div class="collapse navbar-collapse" id="navbarContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         {% if user.is_authenticated %}
-                            <li class="nav-item"><a href="{% url 'profile' %}">Profile</a></li>
-                            <li><a href="#">My Orders</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">Profile</a></li>
+                            {% if not user.is_store_manager %}
+                            <li><a class="nav-link" href="#">My Orders</a></li>
                             <li class="nav-item"><a  class="nav-link" href="#">My Wishlist</a></li>
-                            <li class="nav-item"><a href="{% url 'logout' %}">Logout</a></li>
-                            {% if user.is_store_manager %}
-                                <li class="nav-item"><a class="nav-link" href="{% url 'store_dashboard' %}"> My Store </a></li>
+                            {% else %}
+                                <li class="nav-item"><a class="nav-link" href="{% url 'store_dashboard' user.id %}"> My Store </a></li>
                             {%  endif %}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
                         {%  else %}
                             <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'signup' %}">Sign Up</a></li>
