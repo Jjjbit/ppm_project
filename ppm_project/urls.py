@@ -23,8 +23,6 @@ from store.views import add_to_cart
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', ProductListView.as_view(), name='home'),  # new
-    # path('admin/add-category/',add_category, name='add_category'),  # new
-    # path('', include('home.urls')),# new
     path('category/<int:category_id>/', CategoryProductsView.as_view(), name='category_products'),  # new
     path('users/', include('users.urls')), # new
     path('users/', include('django.contrib.auth.urls')), #new
