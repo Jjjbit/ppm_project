@@ -1,11 +1,11 @@
-from django.shortcuts import render
+from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, TemplateView
-from pyexpat.errors import messages
-
-from .models import Product, Category, Cart, CartItem, Order, OrderItem
+from django.views.generic.edit import CreateView
+from django.contrib import messages
+from .models import Product, Category, Cart, CartItem, Order, OrderItem, Store
 #from django.utils import timezone
 from django.shortcuts import render, redirect , get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import ProductForm, CategoryForm
 #from .permissions import IsStoreManager
 from django.core.exceptions import PermissionDenied
@@ -18,6 +18,15 @@ from django.views.decorators.http import require_POST
 
 #from django.http import HttpResponseRedirect
 
+class CreateStoreView(LoginRequiredMixin, CreateView):
+    model = Store
+    fields = ['name']
+    template_name = 'create_store.html'
+    success_url = reverse_lazy('profile')
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
 
 #mostra tutti i prodotti di una categoria specifica del sito
 class CategoryProductsView(ListView):
@@ -27,8 +36,9 @@ class CategoryProductsView(ListView):
 
     def get_queryset(self):
         category_id = self.kwargs["category_id"]
-        category = get_object_or_404(Category, id=category_id)
-        return Product.objects.filter(category=category)
+        # products = Product.objects.filter(category_id=category_id)
+        #category = get_object_or_404(Category, id=category_id)
+        return Product.objects.filter(category_id=category_id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -42,6 +52,15 @@ class StoreCategoryProductsView(ListView):
     model = Product
     template_name = "store_category_products.html"
     paginate_by = 9
+
+    def __init__(self):
+        super().__init__()
+        self.seller = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.seller = CustomUser.objects.get(pk=self.kwargs['seller_id'])
+        return super().dispatch(request, *args, **kwargs)
+
 
     def get_queryset(self):
         seller_id = self.kwargs['seller_id']
@@ -62,22 +81,36 @@ class StoreCategoryProductsView(ListView):
 class StoreView(ListView):
     model = Product
     template_name = "store_dashboard.html"
+    paginate_by = 9
+    # context_object_name = "seller" #urls.py: path('<int:pk>/', StoreView.as_view(), name='store_dashboard')
 
-    def get_queryset(self):
-        return Product.objects.filter(seller=self.request.user)
+    def __init__(self):
+        super().__init__()
+        self.seller = None
 
     def dispatch(self, request, *args, **kwargs):
         self.seller = CustomUser.objects.get(pk=self.kwargs['seller_id'])
         return super().dispatch(request, *args, **kwargs)
 
+    def get_queryset(self):
+        return Product.objects.filter(seller=self.seller)
+
     def get_context_data(self, **kwargs):
         context = (super().get_context_data(**kwargs))
         user = self.request.user
 
-        context["seller"] = self.seller #seller è l'utente proprietario del negozio
-        context["categories"] = Category.objects.filter(product__seller=self.seller).distinct()
+        context["seller_id"] = self.seller.id #seller è l'utente proprietario del negozio
+        context["categories"] = Category.objects.filter(product__seller=self.seller).distinct() #categorie dei prodotti del negozio
         context["is_owner"] = self.request.user.is_authenticated and self.request.user == self.seller #is_owner booleano che indica se l'utente corrente è il proprietario del negozio
-        context["is_store_manage"] = user.is_authenticated and user.is_store_manager #is_store_manage booleano che indica se l'utente corrente è un gestore del negozio
+        context["is_store_manager"] = user.is_authenticated and user.is_store_manager #is_store_manage booleano che indica se l'utente corrente è un gestore del negozio
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context['object_list'] = Product.objects.filter(seller=self.object)
+    #     context['categories'] = Category.objects.filter(product__seller=self.object).distinct()
+    #     context['is_owner'] = self.request.user == self.object
+    #     context['is_store_manage'] = self.request.user.is_authenticated and self.request.user.is_store_manager
+    #     return context
 
 
 #mostra tutti i prodotti del sito, con paginazione e filtro per categoria
@@ -164,12 +197,17 @@ def store_manager_required(view_func):
 
 @login_required
 @store_manager_required
-def add_product(request):
+def add_product(request, seller_id):
+    if request.user.id != seller_id:
+        raise PermissionDenied("You cannot add products to someone else's store.")
+
     if request.method == "POST":
-        form = ProductForm(request.POST)
+        form = ProductForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
-            form.save()
-            return redirect('product_list')
+            product=form.save(commit=False)
+            product.seller = request.user
+            product.save()
+            return redirect('store_dashboard', seller_id=request.user.id)
     else:
         form = ProductForm()
     return render(request, 'add_product.html', {'form': form})
