@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% csrf_token %}
 
 {% block title %}{{ category.name }}{% endblock %}
 
@@ -8,11 +9,11 @@
         {% for product in products %}
             <div class="col-sm-6 col-md-4">
                 <div class="thumbnail">
-                    <img src="https://placehold.co/300x200" class="card-img-top" alt="{{ product.name }}">
+                    <a href="{{ product.get_absolute_url }}"><img src="{{ product.get_image_url}}" class="card-img-top" alt="{{ product.name }}"></a>
                     <div class="card-body">
                         <h3 class="card-title">{{ product.name }}</h3>
                         <div>
-                            <a href="#" class="btn btn-primary">Details</a>
+                            <a href="{{ product.get_absolute_url }}" class="btn btn-primary">Details</a>
                             <form method="post" action="{% url 'add_to_cart' product.id %}">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-primary">Add to Cart</button>
