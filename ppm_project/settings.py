@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users',
+    'store',
+    'home',# new
+
     'crispy_forms',  # new
     'crispy_bootstrap5',  # new
 
@@ -84,11 +87,13 @@ DATABASES = {
     }
 }
 
-import dj_database_url
-import os
-db_from_env = dj_database_url.config(conn_max_age=500,conn_health_checks=True,)
-print(db_from_env)
-DATABASES['default'].update(db_from_env)
+# import dj_database_url
+# import os
+# DATABASE_URL = os.environ.get("DATABASE_URL")
+# if DATABASE_URL:
+# db_from_env = dj_database_url.config(conn_max_age=500,conn_health_checks=True,)
+# print(db_from_env)
+# DATABASES['default'].update(db_from_env)
 
 
 
