@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm, Authenti
 from .models import CustomUser
 
 class CustomUserCreationForm(UserCreationForm):
-    is_store_manager = forms.BooleanField(label="Register as seller?", required=False)
+    is_store_manager = forms.BooleanField(label="Register as seller", required=False)
 
     class Meta:
         model = CustomUser
@@ -15,6 +15,13 @@ class CustomUserCreationForm(UserCreationForm):
             'password1',
             'password2'
         )  # new
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.is_store_manager = self.cleaned_data["is_store_manager"]
+        if commit:
+            user.save()
+        return user
 
 class CustomUserChangeForm(UserChangeForm):
     class Meta:
