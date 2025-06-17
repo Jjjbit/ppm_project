@@ -1,4 +1,3 @@
-from Scripts.rst2odt import description
 from django import forms
 from .models import Product, Category
 
@@ -13,7 +12,7 @@ class ProductForm(forms.ModelForm):
         fields = [
             'name',
             'price',
-            'discount_price',
+            'image',
             'stock',
             'category',
             'description',
