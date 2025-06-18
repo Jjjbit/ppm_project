@@ -6,8 +6,13 @@
     <h1>{{ object.name }}</h1>
 
     <img src="{{ object.get_image_url }}" alt="{{ object.name }}" class="img-fluid">
-
+    {% if product.discount %}
+         <p><del>Original price: ¥{{ product.price }}</del></p>
+    <p><strong>Discounted price: {{ product.get_discount_price }}€</strong></p>
+    <p style="color: red;">Discount: {{ product.get_discount_percentage }}%</p>
+    {% else%}
     <p>Price: {{ object.price }}€</p>
+    {% endif %}
     <p>Description: {{ object.description }}</p>
 
    {% if not user.is_store_manager %}
