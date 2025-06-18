@@ -6,6 +6,7 @@ from django.contrib.auth.views import LoginView, PasswordChangeView, PasswordCha
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from store.models import Store
 
 
 class SignUpView(CreateView):
@@ -41,7 +42,16 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["user"] = self.request.user
+        user = self.request.user
+        context["user"] = user
+
+        if user.is_authenticated and user.is_store_manager:
+            try:
+                context["store"] = user.store
+            except Store.DoesNotExist:
+                context["store"] = None
+        else:
+            context["store"] = None
         return context
 
 @login_required
@@ -50,3 +60,4 @@ def edit_profile_view(request):
         # Handle profile editing logic here
         pass
     return render(request, 'edit_profile.html')
+
