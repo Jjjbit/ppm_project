@@ -22,7 +22,7 @@
     <div class="row">
         {% for product in object_list %}
             <div class="col-sm-6 col-md-4">
-                <div  class="h-100">
+                <div class="h-100">
                     <a href="{% url 'product_detail' product.pk %}?from=store&seller_id={{ product.seller.id }}"><img src="{{ product.get_image_url }}" alt="{{ product.name }}" class="img-fluid" ></a>
                     <div class="caption">
                         <h3>{{ product.name}} </h3>
@@ -34,9 +34,15 @@
                                     <button type="submit" class="btn btn-primary">Add to Cart</button>
                                 </form>
                             {% endif %}
+                            {% if not user.is_store_manager and user.is_authenticated%}
+                                <form method="post" action="#">
+                                    {% csrf_token %}
+                                    <button class="btn btn-primary mt-2" type="submit">Add to Wishlist</button>
+                                </form>
+                            {% endif %}
                             {% if is_owner %}
-                                <a role="button" class="btn btn-primary" href="#">Edit</a>
-                                <a role="button" class="btn btn-primary" href="#">Delete</a>
+                                <a role="button" class="btn btn-primary" href="{% url 'edit_product' product.id %}">Edit</a>
+                                <a role="button" class="btn btn-primary" href="{% url 'delete_product' product.id %}">Delete</a>
                             {% endif %}
                         </div>
                     </div>

@@ -16,8 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
-from store.views import ProductDetailView, CategoryProductsView, ProductListView, CreateStoreView
+from django.conf import settings
+from django.conf.urls.static import static
+from store.views import ProductDetailView, CategoryProductsView, ProductListView, CreateStoreView, EditProductView, \
+    DeleteProductView
 from store.views import add_to_cart
 
 urlpatterns = [
@@ -29,6 +31,10 @@ urlpatterns = [
     path('create-store/', CreateStoreView.as_view(), name='create_store'),
     path('store/', include('store.urls')),  # new
     path("products/<int:pk>/", ProductDetailView.as_view(), name="product_detail"),
+    path('product/<int:pk>/edit/', EditProductView.as_view(), name='edit_product'),
+    path('product/<int:pk>/delete/', DeleteProductView.as_view(), name='delete_product'),
     path('add-to-cart/<int:product_id>/', add_to_cart, name='add_to_cart'),
-
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
