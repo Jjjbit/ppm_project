@@ -29,13 +29,16 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} - {self.price} - {self.seller.username}"
 
-    def get_absolute_url(self):
-        return reverse("product_detail", kwargs={"pk": self.pk})
-
     def get_image_url(self):
         if self.image:
             return self.image.url
-        return "https://placehold.co/600x400"
+        return "https://placehold.co/400x400"
+
+    def delete(self, *args, **kwargs):
+        if self.image:
+            self.image.delete(save=False)
+        super().delete(*args, **kwargs)
+
 
 
 class Order(models.Model):
