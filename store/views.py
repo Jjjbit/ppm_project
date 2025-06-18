@@ -1,6 +1,6 @@
 from django.urls import reverse_lazy,  reverse
 from django.views.generic import ListView, DetailView, TemplateView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.contrib import messages
 from .models import Product, Category, Cart, CartItem, Order, OrderItem, Store
 #from django.utils import timezone
@@ -238,30 +238,40 @@ class AddProductView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse_lazy('store_dashboard', kwargs={'seller_id': self.request.user.id})
 
+class EditProductView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Product
+    template_name = 'edit_product.html'
+    context_object_name = 'product'
+    fields = ['name', 'price', 'stock', 'image', 'description']
 
-@login_required
-@store_manager_required
-def edit_product(request, pk):
-    product = get_object_or_404(Product, pk=pk)
+    def test_func(self):
+        product = self.get_object()
+        return self.request.user == product.seller
 
-    if request.user != product.seller:
-        raise PermissionDenied
+    def handle_no_permission(self):
+        raise PermissionDenied("You do not have permission to edit this product.")
 
-    if request.method == "POST":
-        form = ProductForm(request.POST, instance=product)
-        if form.is_valid():
-            form.save()
-            return redirect('store_dashboard')
-    else:
-        form = ProductForm(instance=product)
-    return render(request, 'edit_product.html', {'form': form})
+    def get_success_url(self):
+        return reverse_lazy('store_dashboard', kwargs={'seller_id': self.request.user.id})
 
-
-@login_required
-@store_manager_required
-def delete_product(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    product.delete()
-    return redirect('product_list')
+    def form_valid(self, form):
+        if 'remove_image' in self.request.POST:
+            form.instance.image.delete(save=False)
+            form.instance.image = None
+        return super().form_valid(form)
 
 
+
+class DeleteProductView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Product
+    template_name = 'delete_product.html'
+
+    def test_func(self):
+        product = self.get_object()
+        return self.request.user == product.seller
+
+    def handle_no_permission(self):
+        raise PermissionDenied("You do not have permission to delete this product.")
+
+    def get_success_url(self):
+        return reverse_lazy('store_dashboard', kwargs={'seller_id': self.request.user.id})
