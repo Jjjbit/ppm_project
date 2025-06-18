@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from django.urls import reverse
+from django.core.validators import MaxValueValidator
 from users.models import CustomUser
 
 class Store(models.Model):
@@ -20,7 +20,7 @@ class Product(models.Model):
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
-    discount = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    discount = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, validators=[MaxValueValidator(0)] )
     stock = models.PositiveIntegerField(default=0)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     seller = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -38,6 +38,17 @@ class Product(models.Model):
         if self.image:
             self.image.delete(save=False)
         super().delete(*args, **kwargs)
+
+    def get_discount_price(self):
+        if self.discount and self.discount< 0:
+            return round(self.price * (1 + self.discount / 100), 2)
+        return self.price
+
+    def get_discount_percentage(self):
+        if self.discount and self.discount< 0:
+            return round(self.discount, 2)
+        return 0
+
 
 
 

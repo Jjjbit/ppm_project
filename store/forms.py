@@ -19,6 +19,7 @@ class ProductForm(forms.ModelForm):
         fields = [
             'name',
             'price',
+            'discount',
             'image',
             'stock',
             'category',
@@ -39,4 +40,13 @@ class ProductForm(forms.ModelForm):
                     raise ValidationError("Image aspect ratio must be between 0.5 and 2")
 
             return image
+
+        def clean_discount(self):
+            discount = self.cleaned_data.get("discount")
+            price = self.cleaned_data.get("price")
+
+            if discount is not None and discount >= 0:
+                raise forms.ValidationError("Discount must be negative")
+
+            return discount
 

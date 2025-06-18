@@ -242,7 +242,7 @@ class EditProductView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Product
     template_name = 'edit_product.html'
     context_object_name = 'product'
-    fields = ['name', 'price', 'stock', 'image', 'description']
+    fields = ['name', 'price', 'discount', 'stock', 'image', 'description']
 
     def test_func(self):
         product = self.get_object()
