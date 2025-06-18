@@ -18,16 +18,18 @@
     <div class="row">
         {% for product in object_list %}
             <div class="col-sm-6 col-md-4">
-                <div class="thumbnail">
+                <div class="thumbnail h-100">
                     <a href="{{ product.get_absolute_url }}"><img src="{{ product.get_image_url }}" alt="{{ product.name }}"></a>
                     <div class="caption">
                         <h3>{{ product.name}} </h3>
-                        <div>
-                            <a href="{{ product.get_absolute_url }}" class="btn btn-primary" role="button">Detail</a>
-                            <form method="post" action="{% url 'add_to_cart' product.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-primary">Add to Cart</button>
-                            </form>
+                        <div class="d-flex gap-2 align-items-center">
+                            <a href="{% url 'product_detail' product.pk %}?from=home" class="btn btn-primary" role="button">Detail</a>
+                            {% if not is_store_manager %}
+                                <form method="post" action="{% url 'add_to_cart' product.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary">Add to Cart</button>
+                                </form>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
