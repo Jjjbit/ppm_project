@@ -1,4 +1,4 @@
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy,  reverse
 from django.views.generic import ListView, DetailView, TemplateView
 from django.views.generic.edit import CreateView
 from django.contrib import messages
@@ -6,16 +6,15 @@ from .models import Product, Category, Cart, CartItem, Order, OrderItem, Store
 #from django.utils import timezone
 from django.shortcuts import render, redirect , get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import ProductForm, CategoryForm
+from .forms import ProductForm
 #from .permissions import IsStoreManager
 from django.core.exceptions import PermissionDenied
 #from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from users.models import CustomUser
-
+from django.http import Http404
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
-
 #from django.http import HttpResponseRedirect
 
 class CreateStoreView(LoginRequiredMixin, CreateView):
@@ -84,33 +83,32 @@ class StoreView(ListView):
     paginate_by = 9
     # context_object_name = "seller" #urls.py: path('<int:pk>/', StoreView.as_view(), name='store_dashboard')
 
-    def __init__(self):
-        super().__init__()
-        self.seller = None
+    # def __init__(self):
+    #     super().__init__()
+    #     self.seller = None
 
     def dispatch(self, request, *args, **kwargs):
-        self.seller = CustomUser.objects.get(pk=self.kwargs['seller_id'])
+        try:
+            self.seller = CustomUser.objects.get(pk=self.kwargs['seller_id'])
+            if not self.seller.is_store_manager or not hasattr(self.seller, 'store'):
+                raise Http404("This user does not have a store.")
+        except CustomUser.DoesNotExist:
+            raise Http404("User not found.")
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return Product.objects.filter(seller=self.seller)
 
     def get_context_data(self, **kwargs):
-        context = (super().get_context_data(**kwargs))
+        context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        context["seller_id"] = self.seller.id #seller è l'utente proprietario del negozio
+        context["seller"] = self.seller #seller è l'utente proprietario del negozio
         context["categories"] = Category.objects.filter(product__seller=self.seller).distinct() #categorie dei prodotti del negozio
-        context["is_owner"] = self.request.user.is_authenticated and self.request.user == self.seller #is_owner booleano che indica se l'utente corrente è il proprietario del negozio
+        context["is_owner"] = user.is_authenticated and user == self.seller #is_owner booleano che indica se l'utente corrente è il proprietario del negozio
         context["is_store_manager"] = user.is_authenticated and user.is_store_manager #is_store_manage booleano che indica se l'utente corrente è un gestore del negozio
+        return context
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context['object_list'] = Product.objects.filter(seller=self.object)
-    #     context['categories'] = Category.objects.filter(product__seller=self.object).distinct()
-    #     context['is_owner'] = self.request.user == self.object
-    #     context['is_store_manage'] = self.request.user.is_authenticated and self.request.user.is_store_manager
-    #     return context
 
 
 #mostra tutti i prodotti del sito, con paginazione e filtro per categoria
@@ -127,19 +125,14 @@ class ProductListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
+
         context["categories"] = Category.objects.all()
+        context["is_store_manager"] = user.is_authenticated and user.is_store_manager
         return context
 
 
-#mostra i dettagli di un prodotto specifico
-class ProductDetailView(DetailView):
-    model = Product
-    template_name = 'product_detail.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['related_products'] = Product.objects.filter(category=self.object.category).exclude(id=self.object.id)[:4]
-        return context
 
 @csrf_protect
 @require_POST
@@ -187,6 +180,22 @@ class WishlistView(LoginRequiredMixin, TemplateView):
     template_name = 'wishlist.html'
 
 
+#mostra i dettagli di un prodotto specifico
+class ProductDetailView(DetailView):
+    model = Product
+    template_name = 'product_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        referer = self.request.META.get('HTTP_REFERER', '')
+        if '/store/' in referer:
+
+            seller_id = self.object.seller.id
+            context['back_url'] = reverse('store_dashboard', kwargs={'seller_id': seller_id})
+        else:
+            context['back_url'] = reverse('home')
+        return context
+
 def store_manager_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated or not request.user.is_store_manager:
@@ -209,8 +218,25 @@ def add_product(request, seller_id):
             product.save()
             return redirect('store_dashboard', seller_id=request.user.id)
     else:
-        form = ProductForm()
+        form = ProductForm(user=request.user)
     return render(request, 'add_product.html', {'form': form})
+
+class AddProductView(LoginRequiredMixin, CreateView):
+    model = Product
+    form_class = ProductForm
+    template_name = 'add_product.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.seller = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('store_dashboard', kwargs={'seller_id': self.request.user.id})
 
 
 @login_required
@@ -225,10 +251,11 @@ def edit_product(request, pk):
         form = ProductForm(request.POST, instance=product)
         if form.is_valid():
             form.save()
-            return redirect('product_list')
+            return redirect('store_dashboard')
     else:
         form = ProductForm(instance=product)
     return render(request, 'edit_product.html', {'form': form})
+
 
 @login_required
 @store_manager_required
