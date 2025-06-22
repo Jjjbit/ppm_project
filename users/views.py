@@ -1,12 +1,12 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, TemplateView
-from django.contrib.auth.views import LoginView, PasswordChangeView, PasswordChangeDoneView
-
-from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from django.contrib.auth.views import LoginView
+from .forms import CustomUserCreationForm, CustomAuthenticationForm, EditProfileForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from store.models import Store
+from django.contrib import messages
 
 
 class SignUpView(CreateView):
@@ -29,14 +29,6 @@ class MyLoginView(LoginView):
     template_name = "registration/login.html"
 
 
-class CustomPasswordChangeView(PasswordChangeView):
-    template_name = 'registration/password_change_form.html'
-    success_url = '/password-change-done/'
-
-class CustomPasswordChangeDoneView(PasswordChangeDoneView):
-    template_name = 'registration/password_change_done.html'
-
-
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = "profile.html"
 
@@ -56,8 +48,14 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
 @login_required
 def edit_profile_view(request):
+    user = request.user
     if request.method == 'POST':
-        # Handle profile editing logic here
-        pass
-    return render(request, 'edit_profile.html')
+        form = EditProfileForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully.')
+            return redirect('profile')
+    else:
+        form = EditProfileForm(instance=user)
+    return render(request, 'edit_profile.html', {'form': form})
 
