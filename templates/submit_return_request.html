@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %} Page of Return Request{% endblock %}
+
+{% block content %}
+    <h2>Return Request for {{ item.product.name }}</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form|crispy }}
+      <button type="submit" class="btn btn-primary">Submit Return Request</button>
+    </form>
+{% endblock %}
