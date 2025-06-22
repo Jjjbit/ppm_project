@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %} My Orders {% endblock %}
+
+{% block content %}
+    <h2>Orders for Your Products</h2>
+    <ul>
+        {% for item in order_items %}
+            <li>
+                {{ item.order.created_at }} — Buyer: {{ item.order.buyer.username }}<br>
+                <strong>{{ item.product.name }}</strong><br>
+                Quantity: {{ item.quantity }} × €{{ item.price_at_purchase }} =
+                <strong>€{{ item.subtotal }}</strong><br>
+
+                {% if item.return_request %}
+                    {% if item.return_request.approved %}
+                        <span class="text-success">Returned (Approved)</span>
+                    {% elif item.return_request.approved == False %}
+                        <span class="text-danger">Return Rejected</span>
+                    {% else %}
+                        <span class="text-warning">Return Pending</span>
+                    {% endif %}
+                {% else %}
+                    <span class="text-muted">No Return Request</span>
+                {% endif %}
+            </li>
+        {% empty %}
+            <p>No one has bought your products yet.</p>
+        {% endfor %}
+    </ul>
+    <a href="{{ back_url }}" class="btn btn-secondary mt-2" >Back</a>
+
+    <div class="d-flex justify-content-center">
+        <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <a class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
+                </li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+{% endblock %}
+
+
