@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block title %} Order Detail{% endblock %}
+
+{% block content %}
+    <h2>Order #{{ order.id }} — Created at: {{ order.created_at }}</h2>
+
+    <div class="order-items">
+        {% for item in order.items.all %}
+            <div class="row py-3 border-bottom align-items-center">
+                <div class="col-md-2">
+                    <img src="{{ item.product.get_image_url }}" alt="{{ item.product.name }}" class="img-fluid rounded" style="max-height: 100px;">
+                </div>
+
+                <div class="col-md-6">
+                    <h5>{{ item.product.name }}</h5>
+                    <p>Quantity: {{ item.quantity }}</p>
+                    <p>Price at purchase: €{{ item.price_at_purchase }}</p>
+                </div>
+
+                <div class="col-md-4">
+                    {% if item.product %}
+                        <form method="post" action="{% url 'add_to_cart' item.product.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary btn-sm">Add to Cart</button>
+                        </form>
+                    {% else %}
+                        <p class="text-muted">This product is no longer available.</p>
+                    {% endif %}
+
+                    <div class="mt-2">
+                        {% if item.return_request %}
+                            {% if item.return_request.approved %}
+                                <span class="text-success">Returned Approved</span>
+                            {% elif item.return_request.approved == False %}
+                                <span class="text-danger">Return Rejected</span>
+                            {% else %}
+                                <span class="text-warning">Return Pending</span>
+                            {% endif %}
+                        {% else %}
+
+                        {% if user == order.buyer %}
+                            <form method="get" action="{% url 'submit_return_request' item.id %}">
+                                <button type="submit" class="btn btn-outline-secondary btn-sm">Request Return</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="mt-4">
+        <h4>Total: €{{ order.total_price }}</h4>
+        <a href="{% url 'buyer_orders' %}" class="btn btn-secondary mt-3">Back</a>
+    </div>
+
+{% endblock %}
