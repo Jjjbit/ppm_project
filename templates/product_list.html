@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load static %}
 {% csrf_token %}
 
 {% block title %}Home{% endblock title %}
@@ -24,11 +23,15 @@
                         <h3>{{ product.name}} </h3>
                         <div class="d-flex gap-2 align-items-center">
                             <a href="{% url 'product_detail' product.pk %}?from=home" class="btn btn-primary" role="button">Detail</a>
-                            {% if not is_store_manager %}
-                                <form method="post" action="{% url 'add_to_cart' product.id %}">
+                            {% if not is_store_manager and user.is_authenticated%}
+                                <form method="post" action="{% url 'add_to_cart' product.id %}?from=home">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-primary">Add to Cart</button>
                                 </form>
+                                <form method="post" action="{% url 'add_to_wishlist' product.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary">Add to Wishlist</button>
+                                    </form>
                             {% endif %}
                         </div>
                     </div>
@@ -58,11 +61,10 @@
             </ul>
         </nav>
     </div>
-
     {% if messages %}
-        <div id="message-container">
+        <div class="container mt-2" id="message-container">
             {% for message in messages %}
-                <div class="alert alert-success" role="alert">
+                <div class="alert alert-{{ message.tags }}">
                     {{ message }}
                 </div>
             {% endfor %}
@@ -77,5 +79,4 @@
             }, 3000);
         </script>
     {% endif %}
-
 {% endblock content %}
