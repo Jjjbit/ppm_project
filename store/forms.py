@@ -1,5 +1,5 @@
 from django import forms
-from .models import Product, Category
+from .models import Product, Category, ReturnRequest
 from django import forms
 from django.core.exceptions import ValidationError
 from PIL import Image
@@ -43,10 +43,16 @@ class ProductForm(forms.ModelForm):
 
         def clean_discount(self):
             discount = self.cleaned_data.get("discount")
-            price = self.cleaned_data.get("price")
 
             if discount is not None and discount >= 0:
                 raise forms.ValidationError("Discount must be negative")
 
             return discount
 
+class ReturnRequestForm(forms.ModelForm):
+    class Meta:
+        model = ReturnRequest
+        fields = ['reason']
+        widgets = {
+            'reason': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Explain why you want to return this item...'}),
+        }
