@@ -49,3 +49,13 @@ class CustomAuthenticationForm(AuthenticationForm):
 
 
 
+class EditProfileForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'email']
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if not username:
+            raise forms.ValidationError("Username cannot be empty.")
+        return username
