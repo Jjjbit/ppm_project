@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %} My Orders{% endblock %}
+
+{% block content %}
+    <h2>My Orders</h2>
+    <ul>
+        {% for order in object_list %}
+            <li>
+                Order #{{ order.id }} — created at: {{ order.created_at }} — Total: €{{ order.total_price }}
+                <a href="{% url 'order_detail' order.pk %}" class="btn btn-primary">View Details</a>
+            </li>
+        {% empty %}
+            <li>You have no orders yet.</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ back_url }}" class="btn btn-secondary mt-2" >Back</a>
+{% endblock %}
