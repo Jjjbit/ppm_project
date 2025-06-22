@@ -1,20 +1,24 @@
 {% extends "base.html" %}
 
-
 {% block title %}Profile{% endblock title %}
+
 {% block content %}
     {% if user.is_authenticated %}
-    <h2>Profile</h2>
-    <p>Username: {{ user.username }}</p>
-    <p>Email: {{ user.email }}</p>
-    {% if store  %}
-        <p>My Store: <a href="{% url 'store_dashboard' store.owner.id %}" style="text-decoration: none; color: black;">{{ store.name }}</a> </p>
-        {% if user.is_authenticated and user.is_store_manager and user.is_owner %}
-            <p>You have no store yet.<a href="{% url 'create_store' %}" style="text-decoration: none; color: black;">Create one now</a></p>
-       {% endif %}
-    {%  else %}
-        <p>You don't have a store.</p>
-    {% endif %}
-    <a href="{% url 'password_change' %}" class="btn btn-warning">Change Password</a>
+        <h2>Profile</h2>
+        <p>Username: {{ user.username }}</p>
+        <p>Email: {{ user.email }}</p>
+        <p><a href="{% url 'buyer_orders' %}?from=profile">My Orders</a></p>
+        {% if not user.is_store_manager %}
+            <p><a href="{% url 'wishlist' %}?from=prodile">My Wishlist</a></p>
+        {% endif %}
+        {% if store %}
+            <p>My Store: <a href="{% url 'store_dashboard' store.owner.id %}">{{ store.name }}</a> </p>
+            {% if user.is_authenticated and user.is_store_manager and user.is_owner %}
+                <p>You have no store yet.<a href="{% url 'create_store' %}" style="text-decoration: none; color: black;" role="button">Create one now</a></p>
+           {% endif %}
+        {% endif %}
+        <p><a href="{% url 'edit_profile' %}" >Edit Profile</a></p>
+        <p><a href="{% url 'password_change' %}">Change Password</a></p>
+        <p><a href="{% url 'logout' %}">Logout</a></p>
     {% endif %}
 {% endblock content %}
