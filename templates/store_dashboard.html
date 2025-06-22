@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 
 
 {% block title %}{{ seller.username }}'s Store{% endblock %}
@@ -16,7 +17,12 @@
     </ol>
 
     {% if is_owner %}
-        <p><a href="{% url 'add_product' seller.id %}" role="button" style="text-decoration: none; color: black;">+ Add New Product</a></p>
+        <div class="d-flex gap-2 align-items-center">
+            <a href="{% url 'add_product' seller.id %}" role="button" class="btn btn-primary">+ Add New Product</a>
+            <a href="{% url 'seller_orders' %}?from=store" class="btn btn-primary" role="button">Show Orders</a>
+            <a href="{% url 'seller_return_requests' %}" class="btn btn-primary" role="button">Return Requests</a>
+
+        </div>
     {% endif %}
 
     <div class="row">
@@ -33,11 +39,9 @@
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-primary">Add to Cart</button>
                                 </form>
-                            {% endif %}
-                            {% if not user.is_store_manager and user.is_authenticated%}
-                                <form method="post" action="#">
+                                <form method="post" action="{% url 'add_to_wishlist' product.id %}">
                                     {% csrf_token %}
-                                    <button class="btn btn-primary mt-2" type="submit">Add to Wishlist</button>
+                                    <button type="submit" class="btn btn-primary">Add to Wishlist</button>
                                 </form>
                             {% endif %}
                             {% if is_owner %}
@@ -75,23 +79,16 @@
         </nav>
     </div>
 
-    {% if messages %}
-        <div id="message-container">
-            {% for message in messages %}
-                <div class="alert alert-success" role="alert">
-                    {{ message }}
-                </div>
-            {% endfor %}
+    {% if user.is_authenticated and user.is_store_manager %}
+      {% if pending_return_requests %}
+        <div class="alert alert-warning">
+          You have {{ pending_return_requests.count }} pending return request{{ pending_return_requests.count|pluralize }}.
+          <a href="{% url 'seller_return_requests' %}">View now</a>.
         </div>
-
-        <script>
-            setTimeout(function () {
-                const container = document.getElementById("message-container");
-                if (container) {
-                    container.style.display = "none";
-                }
-            }, 3000);
-        </script>
-    {% endif %}
+      {% endif %}
+  {% endif %}
 
 {% endblock %}
+
+
+
