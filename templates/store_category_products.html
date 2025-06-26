@@ -1,5 +1,5 @@
-{% extend 'base.html' %}
-
+{% extends 'base.html' %}
+{% csrf_token %}
 
 {% block title %}Products in {{ category.name }}{% endblock title %}
 
@@ -8,30 +8,34 @@
 
     {% if has_products %}
         <div class="row">
-        {% for product in object_list %}
-            <div class="col-sm-6 col-md-4">
-                <div class="thumbnail">
-                    <a href="{{ product.get_absolute_url }}"><img src="{{ product.get_image_url}}" alt="{{ product.name }}"></a>
-                    <div class="caption">
-                        <h3>{{ product.name }}</h3>
-                        <div>
-                            <a href="{{ product.get_absolute_url }}" class="btn btn-primary" role="button">Detail</a>
-                            {% if not is_store_manage %}
-                                <form method="post" action="{% url 'add_to_cart' product.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-primary">Add to Cart</button>
-                                </form>
-                            {% endif %}
-                            {% if is_owner %}
-                                <a role="button" href="{% url 'edit_product' product.pk %}">Edit</a>
-                                <a role="button" href="{% url 'delete_product' product.pk %}">Delete</a>
-                            {% endif %}
+            {% for product in object_list %}
+                <div class="col-sm-6 col-md-4">
+                    <div class="h-100">
+                        <a href="{% url 'product_detail' product.pk %}?from=store&seller_id={{ product.seller.id }}"><img src="{{ product.get_image_url}}" alt="{{ product.name }}"></a>
+                        <div class="caption">
+                            <h3>{{ product.name }}</h3>
+                            <div>
+                                <a href="{% url 'product_detail' product.pk %}" class="btn btn-primary" role="button">Detail</a>
+                                {% if not is_owner%}
+                                    <form method="post" action="{% url 'add_to_cart' product.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary">Add to Cart</button>
+                                    </form>
+                                    <form method="post" action="{% url 'add_to_wishlist' product.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary">Add to Wishlist</button>
+                                    </form>
+                                {% endif %}
+                                {% if is_owner %}
+                                    <a role="button" href="{% url 'edit_product' product.pk %}" class="btn btn-primary">Edit</a>
+                                    <a role="button" href="{% url 'delete_product' product.pk %}" class="btn btn-primary">Delete</a>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        {% endfor %}
-    </div>
+            {% endfor %}
+        </div>
     {% else %}
         <p>No products available in this category.</p>
     {% endif %}
