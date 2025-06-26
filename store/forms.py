@@ -1,18 +1,33 @@
-from django import forms
-from .models import Product, Category, ReturnRequest
+from .models import Product, Category, ReturnRequest, StoreCategory, Store
 from django import forms
 from django.core.exceptions import ValidationError
 from PIL import Image
+from django.core.files.base import ContentFile
+from io import BytesIO
+import os
 
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
         fields = ['name']
 
+class StoreCategoryForm(forms.ModelForm):
+    class Meta:
+        model = StoreCategory
+        fields = ['name']
+        labels= {'name': 'Category Name'}
+
 class ProductForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
+        if user:
+            store = Store.objects.filter(owner=user).first()
+            if store:
+                self.fields['store_category'].queryset = StoreCategory.objects.filter(store=store)
+            else:
+                self.fields['store_category'].queryset = StoreCategory.objects.none()
 
     class Meta:
         model = Product
@@ -23,6 +38,7 @@ class ProductForm(forms.ModelForm):
             'image',
             'stock',
             'category',
+            'store_category',
             'description',
         ]
 
@@ -30,23 +46,35 @@ class ProductForm(forms.ModelForm):
             image = self.cleaned_data.get('image')
             if image:
                 img = Image.open(image)
+                img = img.convert('RGB')
+
                 width, height = img.size
-                aspect_ratio = width / height if height != 0 else 0
+                min_side = min(width, height)
+                left = (width - min_side) // 2
+                top = (height - min_side) // 2
+                right = (width + min_side)
+                bottom = (height + min_side)
+                img = img.crop((left, top, right, bottom))
 
-                if width < 400 or height < 400:
-                    raise ValidationError("Image size must be at least 400x400")
+                img = img.resize((400, 400), Image.Resampling.LANCZOS)
 
-                if not (0.5 <= aspect_ratio <= 2):
-                    raise ValidationError("Image aspect ratio must be between 0.5 and 2")
+                buffer = BytesIO()
+                img.save(fp=buffer, format='JPEG')
 
-            return image
+                filename = os.path.splitext(image.name)[0]
+                new_filename = f"{filename}_cropped.jpg"
+
+                self.cleaned_data['image'] = ContentFile(buffer.read(), name=new_filename)
+
+
+            return self.cleaned_data['image']
+
 
         def clean_discount(self):
             discount = self.cleaned_data.get("discount")
 
             if discount is not None and discount >= 0:
                 raise forms.ValidationError("Discount must be negative")
-
             return discount
 
 class ReturnRequestForm(forms.ModelForm):
