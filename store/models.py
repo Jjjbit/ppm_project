@@ -79,7 +79,7 @@ class OrderItem(models.Model):
     seller = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='sold_items', on_delete=models.SET_NULL, null=True)
 
 class Cart(models.Model):
-    session_key = models.CharField(max_length=40, null=True, blank=True)
+    # session_key = models.CharField(max_length=40, null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
