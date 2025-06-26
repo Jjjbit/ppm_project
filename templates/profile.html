@@ -13,8 +13,10 @@
         {% endif %}
         {% if store %}
             <p>My Store: <a href="{% url 'store_dashboard' store.owner.id %}">{{ store.name }}</a> </p>
-            {% if user.is_authenticated and user.is_store_manager and user.is_owner %}
-                <p>You have no store yet.<a href="{% url 'create_store' %}" style="text-decoration: none; color: black;" role="button">Create one now</a></p>
+
+        {% else %}
+            {% if user.is_authenticated and user.is_store_manager %}
+                <p>You have no store yet.<a href="{% url 'create_store' %}" class="btn btn-primary" role="button" >Create one now</a></p>
            {% endif %}
         {% endif %}
         <p><a href="{% url 'edit_profile' %}" >Edit Profile</a></p>
