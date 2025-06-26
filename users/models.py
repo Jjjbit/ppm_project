@@ -6,5 +6,5 @@ class CustomUser(AbstractUser):
     username = models.CharField(max_length=150, unique=True)
     address = models.TextField(blank=True)
     email = models.EmailField(blank=True)
-    #store_name = models.CharField(max_length=255, blank=True)
+
 

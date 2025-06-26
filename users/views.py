@@ -14,16 +14,6 @@ class SignUpView(CreateView):
     success_url = reverse_lazy("login")
     template_name = "registration/signup.html"
 
-def signup(request):
-    if request.method == "POST":
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("login")  # Redirect to the login page after successful signup
-    else:
-        form = CustomUserCreationForm()
-    return render(request, "registration/signup.html", {"form": form})  # Render the signup form template
-
 class MyLoginView(LoginView):
     form_class = CustomAuthenticationForm
     template_name = "registration/login.html"
@@ -38,10 +28,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         context["user"] = user
 
         if user.is_authenticated and user.is_store_manager:
-            try:
-                context["store"] = user.store
-            except Store.DoesNotExist:
-                context["store"] = None
+            context["store"] = user.store
         else:
             context["store"] = None
         return context
