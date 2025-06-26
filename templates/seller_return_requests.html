@@ -34,7 +34,7 @@
     {% empty %}
       <p>No return requests.</p>
     {% endfor %}
-    <a href="{{ back_url }}" class="btn btn-secondary mt-2" >Back</a>
+    <a href="{% url 'store_dashboard' request.user.id %}" class="btn btn-secondary mt-2" >Back</a>
 {% endblock %}
 
 
