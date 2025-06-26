@@ -17,7 +17,7 @@
     <div class="row">
         {% for product in object_list %}
             <div class="col-sm-6 col-md-4">
-                <div class="h-100">
+                <div class="h-100" style="margin-bottom: 10px;">
                     <a href="{% url 'product_detail' product.pk %}?from=store&seller_id={{ product.seller.id }}"><img src="{{ product.get_image_url }}" alt="{{ product.name }}" class="img-fluid" ></a>
                     <div class="caption">
                         <h3>{{ product.name}} </h3>
@@ -31,7 +31,7 @@
                                 <form method="post" action="{% url 'add_to_wishlist' product.id %}">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-primary">Add to Wishlist</button>
-                                    </form>
+                                </form>
                             {% endif %}
                         </div>
                     </div>
@@ -61,22 +61,4 @@
             </ul>
         </nav>
     </div>
-    {% if messages %}
-        <div class="container mt-2" id="message-container">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-
-        <script>
-            setTimeout(function () {
-                const container = document.getElementById("message-container");
-                if (container) {
-                    container.style.display = "none";
-                }
-            }, 3000);
-        </script>
-    {% endif %}
 {% endblock content %}

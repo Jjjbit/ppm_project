@@ -14,7 +14,7 @@
         <p>Price: {{ object.price }}€</p>
     {% endif %}
     <p>Description: {{ object.description }}</p>
-    {% if user.is_store_manager %}
+    {% if user.is_store_manager and is_seller %}
         <p>Stock: {{ object.stock }}</p>
     {% endif %}
 

@@ -40,47 +40,46 @@
                             <li class="nav-item"><a class="nav-link" href="{% url 'signup' %}">Sign Up</a></li>
                         {% endif %}
                     </ul>
-                    <form class="d-flex">
-                        <div class="form-group">
-                            <input type="search" class="form-control me-2" placeholder="Search">
-                        </div>
-                        <button class="btn btn-outline-success" type="submit">Submit</button>
-                    </form>
+
                 </div>
             </div>
         </nav>
     </header>
 
-  <main>
-    <div class="container">
-      {% block content %}
-      {% endblock content %}
-    </div>
-  </main>
+    <main>
+        <div class="container">
+            {% block content %}
+            {% endblock content %}
+        </div>
+    </main>
 
-  {% if messages %}
-      <div class="container mt-2" id="message-container">
-        {% for message in messages %}
-          <div class="alert alert-{{ message.tags }}">
-            {{ message }}
-          </div>
-        {% endfor %}
-      </div>
+    {% if messages %}
+        <div class="container mt-2" id="message-container">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
 
-      <script>
+        <script>
             setTimeout(function () {
                 const container = document.getElementById("message-container");
                 if (container) {
                     container.style.display = "none";
                 }
             }, 3000);
-      </script>
+        </script>
 
-  {% endif %}
+    {% endif %}
 
-  <!-- Bootstrap JavaScript Bundle -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
-    crossorigin="anonymous"></script>
+    <!-- Bootstrap JavaScript Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+            crossorigin="anonymous">
+    </script>
 </body>
 </html>
+
+
+

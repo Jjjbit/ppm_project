@@ -7,18 +7,25 @@
 {% block content %}
     <h1>Welcome to {{ seller.username }}'s store</h1>
 
-    <ol class="breadcrumb" style="list-style: none; padding: 0;">
-        {% for category in categories %}
-            <li><a href="{% url 'store_category_products' seller.id category.id %}" style="text-decoration: none; color: black;">{{ category.name }}</a></li>
-            {% if not forloop.last %} &gt; {% endif %}
-        {% empty %}
-            <p>No category in this Store.</p>
-        {% endfor %}
-    </ol>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb" style="list-style: none; padding: 0;">
+            {% for category in categories %}
+                <li class="breadcrumb-item" style="margin-bottom: 5px;"><a href="{% url 'store_category_products' seller.id category.id %}" style="text-decoration: none; color: black; ">{{ category.name }}</a>
+                    {% if is_owner %}
+                        <a href="{% url 'edit_store_category' seller.id category.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a href="{% url 'delete_store_category' seller.id category.id %}"class="btn btn-sm btn-outline-danger">Delete</a>
+                    {% endif %}
+                </li>
+            {% empty %}
+                <p>No category in this Store.</p>
+            {% endfor %}
+        </ol>
+    </nav>
 
     {% if is_owner %}
-        <div class="d-flex gap-2 align-items-center">
+        <div class="d-flex gap-2 align-items-center" style="margin-bottom: 20px;">
             <a href="{% url 'add_product' seller.id %}" role="button" class="btn btn-primary">+ Add New Product</a>
+            <a href="{% url 'add_store_category' seller.id %}" role="button" class="btn btn-primary">+ Add New Store Category</a>
             <a href="{% url 'seller_orders' %}?from=store" class="btn btn-primary" role="button">Show Orders</a>
             <a href="{% url 'seller_return_requests' %}" class="btn btn-primary" role="button">Return Requests</a>
 
@@ -28,7 +35,7 @@
     <div class="row">
         {% for product in object_list %}
             <div class="col-sm-6 col-md-4">
-                <div class="h-100">
+                <div class="h-100" style="margin-bottom: 10px;">
                     <a href="{% url 'product_detail' product.pk %}?from=store&seller_id={{ product.seller.id }}"><img src="{{ product.get_image_url }}" alt="{{ product.name }}" class="img-fluid" ></a>
                     <div class="caption">
                         <h3>{{ product.name}} </h3>
