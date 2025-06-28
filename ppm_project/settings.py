@@ -97,6 +97,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
     DATABASES["default"] = dj_database_url.config(default=DATABASE_URL, conn_max_age=500, conn_health_checks=True)
     #db_from_env = dj_database_url.config(default=DATABASE_URL, conn_max_age=500,conn_health_checks=True)
+    #DATABASES["default"].update(db_from_env)
 
 
 
