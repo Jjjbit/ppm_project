@@ -6,14 +6,11 @@ from .models import Product, Category, Cart, CartItem, Order, OrderItem, Store, 
 from django.shortcuts import render, redirect , get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import ProductForm, ReturnRequestForm, StoreCategoryForm
-from django.core.exceptions import PermissionDenied
-from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from users.models import CustomUser
 from django.http import Http404
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
-from django.utils.decorators import method_decorator
 from PIL import Image
 from io import BytesIO
 from django.core.files.base import  ContentFile
@@ -36,8 +33,6 @@ class CategoryProductsView(ListView):
 
     def get_queryset(self):
         category_id = self.kwargs["category_id"]
-        # products = Product.objects.filter(category_id=category_id)
-        #category = get_object_or_404(Category, id=category_id)
         return Product.objects.filter(category_id=category_id)
 
     def get_context_data(self, **kwargs):
@@ -52,10 +47,6 @@ class StoreCategoryProductsView(ListView):
     model = Product
     template_name = "store_category_products.html"
     paginate_by = 9
-
-    def __init__(self):
-        super().__init__()
-        self.seller = None
 
     def dispatch(self, request, *args, **kwargs):
         self.seller = CustomUser.objects.get(pk=self.kwargs['seller_id'])
@@ -76,33 +67,10 @@ class StoreCategoryProductsView(ListView):
         context["has_products"] = self.get_queryset().exists()
         return context
 
-@login_required
-def add_store_category(request, seller_id):
-    if request.user.id != seller_id:
-        messages.error(request, "You do not have permission to add categories to this store.")
-        return redirect('home')
-
-    store=get_object_or_404(Store, owner=request.user)
-
-    if request.method == "POST":
-        form = StoreCategoryForm(request.POST)
-        if form.is_valid():
-            category=form.save(commit=False)
-            category.store=store
-            category.save()
-            return redirect('store_dashboard')
-    else:
-        form = StoreCategoryForm()
-    return render(request, 'add_store_category.html', {'form': form})
-
 class AddStoreCategoryView(LoginRequiredMixin, CreateView):
     model = StoreCategory
     form_class = StoreCategoryForm
     template_name = 'add_store_category.html'
-
-    # def dispatch(self, request, *args, **kwargs):
-    #     self.store = get_object_or_404(Store, owner=request.user)
-    #     return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.store = self.request.user.store
@@ -132,7 +100,6 @@ class DeleteStoreCategoryView(LoginRequiredMixin, DeleteView):
         return StoreCategory.objects.filter(store__owner=self.request.user)
 
     def get_success_url(self):
-        messages.success(self.request, "Category deleted successfully.")
         return reverse_lazy('store_dashboard', kwargs={'seller_id': self.request.user.id})
 
 
@@ -161,7 +128,7 @@ class StoreView(ListView):
         context["is_store_manager"] = user.is_authenticated and user.is_store_manager #is_store_manage booleano che indica se l'utente corrente è un gestore del negozio
         return context
 
-#mostra tutti i prodotti del sito, con paginazione e filtro per categoria
+#mostra tutti i prodotti del sito
 class ProductListView(ListView):
     model = Product
     template_name = 'product_list.html'
@@ -193,7 +160,6 @@ class CartView(LoginRequiredMixin, TemplateView):
         else:
             context['back_url'] = reverse('home')
 
-
         if self.request.user.is_authenticated:
             cart, _ = Cart.objects.get_or_create(user=self.request.user)
             cart_items = cart.items.select_related('product')
@@ -203,28 +169,11 @@ class CartView(LoginRequiredMixin, TemplateView):
                 else:
                     item.delete()
                     messages.warning(self.request, "A product in your cart has been removed by the seller.")
-        # else:
-        #     session_cart = self.request.session.get('cart', {})
-        #     updated_session = {}
-        #     for product_id_str, quantity in session_cart.items():
-        #         try:
-        #             product = Product.objects.get(id=product_id_str)
-        #             subtotal = quantity * product.get_discount_price()
-        #             items.append({
-        #                 'product': product,
-        #                 'quantity': quantity,
-        #                 'subtotal': subtotal,
-        #             })
-        #             updated_session[product_id_str] = quantity
-        #         except Product.DoesNotExist:
-        #             messages.warning(self.request, "A product in your cart has been removed by the seller.")
-        #
-        #     self.request.session['cart'] = updated_session
+
         context['cart'] = cart
         context['items'] = items
         context['total_price'] = sum(i['subtotal'] if isinstance(i, dict) else i.subtotal() for i in items)
         return context
-
 
 
 @csrf_protect
@@ -234,7 +183,7 @@ def add_to_cart(request, product_id):
 
     if product.stock <= 0:
         messages.error(request, "Product is out of stock.")
-        return redirect(request.META.get('HTTP_REFERER', '/'))
+        return redirect('home')
 
     if request.user.is_authenticated:
         cart, _ = Cart.objects.get_or_create(user=request.user)
@@ -246,72 +195,13 @@ def add_to_cart(request, product_id):
                 messages.success(request, "Successfully added to cart.")
             else:
                 messages.warning(request, "Cannot add more than available stock.")
-                # return redirect(request.META.get('HTTP_REFERER', '/'))
                 return redirect('home')
         else:
             cart_item.quantity =1
             cart_item.save()
             messages.success(request, "Successfully added to cart.")
-    # else:
-    #     messages.error(request, "You do not have permission to add this product.")
-        # session_cart = request.session.get('cart', {})
-        # product_id_str = str(product_id)
-        # current_qty = session_cart.get(product_id_str, 0)
-        #
-        # if current_qty < product.stock:
-        #     session_cart[product_id_str] = current_qty + 1
-        #     request.session['cart'] = session_cart
-        #     messages.success(request, "Added to cart.")
-        # else:
-        #     messages.warning(request, "Cannot add more than available stock.")
-    # return redirect(request.META.get('HTTP_REFERER', '/'))
     return redirect('home')
 
-
-class AddToCartView(LoginRequiredMixin, UpdateView):
-    @method_decorator(csrf_protect)
-    @method_decorator(require_POST)
-    def post(self, request, product_id):
-        product = Product.objects.get(id=product_id)
-        # try:
-        #     product = Product.objects.get(id=product_id)
-        # except Product.DoesNotExist:
-        #     messages.error(request, "Product not found.")
-        #     return redirect(request.META.get('HTTP_REFERER', '/'))
-
-        if product.stock <= 0:
-            messages.error(request, "Product is out of stock.")
-            return redirect(request.META.get('HTTP_REFERER', '/'))
-
-        if request.user.is_authenticated:
-            cart, _ = Cart.objects.get_or_create(user=request.user)
-            cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
-            if not created: #prodotto aggiunto esiste già nel carrello
-                if cart_item.quantity < product.stock:
-                    cart_item.quantity += 1
-                    cart_item.save()
-                    messages.success(request, "Successfully added to cart.")
-                else:
-                    messages.warning(request, "Cannot add more than available stock.")
-                    return redirect(request.META.get('HTTP_REFERER', '/'))
-            else:
-                cart_item.quantity = 1
-                cart_item.save()
-                messages.success(request, "Successfully added to cart.")
-        else:
-            #messages.warning(request, "You do not have permission to add this product.")
-            session_cart = request.session.get('cart', {})
-            product_id_str = str(product_id)
-            current_qty = session_cart.get(product_id_str, 0)
-
-            if current_qty < product.stock:
-                session_cart[product_id_str] = current_qty + 1
-                request.session['cart'] = session_cart
-                messages.success(request, "Successfully added to cart.")
-            else:
-                messages.warning(request, "Cannot add more than available stock.")
-
-        return redirect(request.META.get('HTTP_REFERER', '/'))
 
 @require_POST
 @login_required
@@ -322,14 +212,6 @@ def increase_quantity(request, item_id):
         item.save()
         messages.success(request, "Successfully added to cart.")
     return redirect('cart_view')
-
-class IncreaseQuantityView(View):
-      def post(self, request, item_id):
-          item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-          if item.quantity <item.product.stock:
-              item.quantity+=1
-              item.save()
-          return redirect('cart_view')
 
 @require_POST
 @login_required
@@ -342,26 +224,12 @@ def decrease_quantity(request, item_id):
         item.delete()
     return redirect('cart_view')
 
-class DecreaseQuantityView(View):
-    def post(self, request, item_id):
-        item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-        if item.quantity >1:
-            item.quantity-=1
-            item.save()
-        return redirect('cart_view')
-
 @require_POST
 @login_required
 def delete_cart_item(request, item_id):
     item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
     item.delete()
     return redirect('cart_view')
-
-class DeleteCartItemView(View):
-    def post(self, request, item_id):
-        item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-        item.delete()
-        return redirect('cart_view')
 
 @require_POST
 @login_required
@@ -384,28 +252,6 @@ def checkout(request):
 
     cart.items.all().delete()
     return redirect('home')
-
-# class CheckoutView(LoginRequiredMixin, View):
-#     def post(self, request):
-#         cart=get_object_or_404(Cart, user=self.request.user)
-#         if not cart.items.exists():
-#             return redirect('cart_view')
-#
-#         order=Order.objects.create(buyer=self.request.user)
-#         for item in cart.items.all():
-#             OrderItem.objects.create(
-#                 order=order,
-#                 product=item.product,
-#                 quantity=item.quantity,
-#                 price_at_purchase=item.product.get_discount_price(),
-#                 seller=item.product.seller
-#             )
-#             item.product.stock-=item.quantity
-#             item.product.save()
-#
-#         cart.items.all().delete()
-#         return redirect('home')
-
 
 class BuyerOrderListView(LoginRequiredMixin, ListView):
     template_name = 'buyer_order_list.html'
@@ -464,7 +310,7 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
 
 class WishlistView(LoginRequiredMixin, TemplateView):
     template_name = 'wishlist.html'
-    pagination = 9
+    paginate_by = 9
 
     def get_context_data(self, **kwargs):
         context=super().get_context_data(**kwargs)
@@ -477,27 +323,6 @@ class WishlistView(LoginRequiredMixin, TemplateView):
         else:
             context['back_url'] = reverse('home')
         return context
-
-# class AddToWishlistView(LoginRequiredMixin, View):
-#     def post(self, request, product_id):
-#         product = get_object_or_404(Product, id=product_id)
-#
-#         if request.user.is_store_manager:
-#             messages.error(request, "Sellers cannot use the wishlist.")
-#             return redirect('home')
-#
-#         wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
-#         wishlist.products.add(product)
-#         messages.success(request, "Product added to your wishlist.")
-#         return redirect(request.META.get('HTTP_REFERER', '/'))
-#
-# class DeleteFromWishlistView(LoginRequiredMixin, View):
-#     def post(self, request, product_id):
-#         wishlist = get_object_or_404(Wishlist, user=request.user)
-#         product = get_object_or_404(Product, id=product_id)
-#         wishlist.products.remove(product)
-#         messages.success(request, "Product removed from your wishlist.")
-#         return redirect('wishlist_view')
 
 @login_required
 def add_to_wishlist(request, product_id):
@@ -521,9 +346,6 @@ def remove_from_wishlist(request, product_id):
     messages.success(request, "Product removed from your wishlist.")
     return redirect('wishlist_view')
 
-
-
-
 #mostra i dettagli di un prodotto specifico
 class ProductDetailView(DetailView):
     model = Product
@@ -540,31 +362,6 @@ class ProductDetailView(DetailView):
         else:
             context['back_url'] = reverse('home')
         return context
-
-# def store_manager_required(view_func):
-#     def wrapper(request, *args, **kwargs):
-#         if not request.user.is_authenticated or not request.user.is_store_manager:
-#             raise PermissionDenied
-#         return view_func(request, *args, **kwargs)
-#     return wrapper
-
-
-# @login_required
-# @store_manager_required
-# def add_product(request, seller_id):
-#     if request.user.id != seller_id:
-#         raise PermissionDenied("You cannot add products to someone else's store.")
-#
-#     if request.method == "POST":
-#         form = ProductForm(request.POST, request.FILES, user=request.user)
-#         if form.is_valid():
-#             product=form.save(commit=False)
-#             product.seller = request.user
-#             product.save()
-#             return redirect('store_dashboard', seller_id=request.user.id)
-#     else:
-#         form = ProductForm(user=request.user)
-#     return render(request, 'add_product.html', {'form': form})
 
 
 def process_image(image_field, filename_base):
@@ -604,9 +401,6 @@ class AddProductView(LoginRequiredMixin, CreateView):
             form.instance.image = process_image(original_image, original_image.name.split('.')[0])
         return super().form_valid(form)
 
-        # form.instance.seller = self.request.user
-        # return super().form_valid(form)
-
     def get_success_url(self):
         return reverse_lazy('store_dashboard', kwargs={'seller_id': self.request.user.id})
 
@@ -615,6 +409,11 @@ class EditProductView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     template_name = 'edit_product.html'
     context_object_name = 'product'
     form_class = ProductForm
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        self.old_image = obj.image
+        return obj
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -625,26 +424,19 @@ class EditProductView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         product = self.get_object()
         return self.request.user == product.seller
 
-    # def handle_no_permission(self):
-    #     raise PermissionDenied("You do not have permission to edit this product.")
-
     def get_success_url(self):
         return reverse_lazy('store_dashboard', kwargs={'seller_id': self.request.user.id})
 
     def form_valid(self, form):
-        if 'remove_image' in self.request.POST:
-            form.instance.image.delete(save=False)
+        if self.request.POST.get('image-clear') == 'on' and self.old_image:
+            self.old_image.delete(save=False)
             form.instance.image = None
-        else:
-            if form.cleaned_data.get('image'):
-                original_image = form.cleaned_data['image']
-                form.instance.image = process_image(original_image, original_image.name.split('.')[0])
+        elif form.cleaned_data.get('image'):
+            if self.old_image:
+                self.old_image.delete(save=False)
+            original_image = form.cleaned_data['image']
+            form.instance.image = process_image(original_image, original_image.name.split('.')[0])
         return super().form_valid(form)
-
-        # if 'remove_image' in self.request.POST:
-        #     form.instance.image.delete(save=False)
-        #     form.instance.image = None
-        # return super().form_valid(form)
 
 
 
@@ -656,8 +448,12 @@ class DeleteProductView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         product = self.get_object()
         return self.request.user == product.seller
 
-    def handle_no_permission(self):
-        raise PermissionDenied("You do not have permission to delete this product.")
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.image:
+            self.object.image.delete(save=False)
+        CartItem.objects.filter(product=self.object).delete()
+        return super().delete(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse_lazy('store_dashboard', kwargs={'seller_id': self.request.user.id})
@@ -683,12 +479,6 @@ def submit_return_request(request, item_id):
         form=ReturnRequestForm()
     return render(request, 'submit_return_request.html', {'form':form, 'item': order_item})
 
-
-
-# class SellerReturnRequestListView(LoginRequiredMixin, View):
-#     def get(self, request):
-#         return_requests = ReturnRequest.objects.filter(order_item__product__seller=request.user)
-#         return render(request, 'seller_return_requests.html', {'return_requests': return_requests})
 
 #seller visualizza tutte le richieste di resi
 @login_required
