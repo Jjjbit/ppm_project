@@ -19,13 +19,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+import os
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z9)2jg^%pr_b9^(87oskb0ti1r=d8o9m-0(29bft3*ow1$z%7j'
+#SECRET_KEY = 'django-insecure-z9)2jg^%pr_b9^(87oskb0ti1r=d8o9m-0(29bft3*ow1$z%7j'
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-z9)2jg^%pr_b9^(87oskb0ti1r=d8o9m-0(29bft3*ow1$z%7j")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "") != "False"
 
 ALLOWED_HOSTS = []
+
 
 
 # Application definition
@@ -87,12 +92,10 @@ DATABASES = {
     }
 }
 
-# import dj_database_url
-# import os
-# DATABASE_URL = os.environ.get("DATABASE_URL")
-# if DATABASE_URL:
-# db_from_env = dj_database_url.config(conn_max_age=500,conn_health_checks=True,)
-# print(db_from_env)
+import dj_database_url
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL:
+    db_from_env = dj_database_url.config(default=DATABASE_URL, conn_max_age=500,conn_health_checks=True,)
 # DATABASES['default'].update(db_from_env)
 
 
