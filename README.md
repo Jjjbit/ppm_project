@@ -46,7 +46,7 @@ Questo progetto è un sito web di e-commerce completo che integra frontend e bac
 - HTML (Django templates)
 
 ## Deployment
-- deployed on Railway: []
+- deployed on Railway: [web-production-0ae6.up.railway.app]
 
 ## Setup & Run
 ```bash
