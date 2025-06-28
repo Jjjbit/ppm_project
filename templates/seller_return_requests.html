@@ -5,34 +5,28 @@
 {% block content %}
     <h2>Return Requests</h2>
     {% for req in pending_return_requests %}
-      <div class="card mb-3 p-3">
-        <p><strong>Item:</strong> {{ req.order_item.product.name }}</p>
-        <p><strong>Buyer:</strong> {{ req.order_item.order.buyer.username }}</p>
-        <p><strong>Reason:</strong> {{ req.reason }}</p>
-        <strong>Request Time:</strong> {{ req.created_at|date:"Y-m-d H:i" }} <br>
-        <p><strong>Status:</strong>
-          {% if req.approved == True %}
-              <span class="text-success">Approved</span>
-          {% elif req.approved == False %}
-              <span class="text-danger">Rejected</span>
-          {% else %}
-              <span class="text-warning">Pending</span>
-              <div class="d-flex gap-2 align-items-center">
-                  <form method="post" action="{% url 'approve_return_request' req.id %}">
-                      {% csrf_token %}
-                      <button class="btn btn-success">Approve</button>
-                  </form>
-                  <form method="post" action="{% url 'reject_return_request' req.id %}">
-                      {% csrf_token %}
-                      <button class="btn btn-danger">Reject</button>
-                  </form>
-              </div>
-          {% endif %}
-        </p>
+        <div class="card mb-3 p-3">
+            <p><strong>Item:</strong> {{ req.order_item.product.name }}</p>
+            <p><strong>Buyer:</strong> {{ req.order_item.order.buyer.username }}</p>
+            <p><strong>Reason:</strong> {{ req.reason }}</p>
+            <strong>Request Time:</strong> {{ req.created_at|date:"Y-m-d H:i" }} <br>
+            <p><strong>Status:</strong>
+                <span class="text-warning">Pending</span>
+                <div class="d-flex gap-2 align-items-center">
+                    <form method="post" action="{% url 'approve_return_request' req.id %}">
+                        {% csrf_token %}
+                        <button class="btn btn-success">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'reject_return_request' req.id %}">
+                        {% csrf_token %}
+                        <button class="btn btn-danger">Reject</button>
+                    </form>
+                </div>
+            </p>
         <hr>
-      </div>
+        </div>
     {% empty %}
-      <p>No return requests.</p>
+      <p>No return requests in pending.</p>
     {% endfor %}
     <a href="{% url 'store_dashboard' request.user.id %}" class="btn btn-secondary mt-2" >Back</a>
 {% endblock %}
