@@ -29,8 +29,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-z9)2jg^%pr_b9^(87oskb
 #DEBUG = True
 DEBUG = os.environ.get("DJANGO_DEBUG", "") != "False"
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ["web-production-0ae6.up.railway.app", "127.0.0.1"]
+CSRF_TRUSTED_ORIGINS = ['https:// web-production-0ae6.up.railway.app']
 
 
 # Application definition
@@ -95,8 +95,9 @@ DATABASES = {
 import dj_database_url
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
-    db_from_env = dj_database_url.config(default=DATABASE_URL, conn_max_age=500,conn_health_checks=True,)
-# DATABASES['default'].update(db_from_env)
+    DATABASES["default"] = dj_database_url.config(default=DATABASE_URL, conn_max_age=500, conn_health_checks=True)
+    #db_from_env = dj_database_url.config(default=DATABASE_URL, conn_max_age=500,conn_health_checks=True)
+
 
 
 
