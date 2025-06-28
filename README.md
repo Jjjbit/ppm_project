@@ -35,9 +35,11 @@ Questo progetto è un sito web di e-commerce completo che integra frontend e bac
     - visualizzare tutti gli ordini ricevuti, username dei clienti che effettua l'ordine, prodotti ordinati, quantità, prezzi totali e lo stato delle richieste di reso.
     - visualizzare tutte le richieste di reso in attesa, con motivazione, data della richiesta e opzioni per accettare o rifiutare. Una volta gestita, la richiesta scompare dalla lista dei Return Requests. 
 
-### Admin
+### Superuser
 - può creare categorie globali (category), visibili solo nella homepage. Queste categorie sono usate dai sellers per classificare i propri prodotti e permettono agli utenti di filtrare i prodotti per categoria.
 - può creare ed eliminare un utente di tipo sellers e buyers.
+- può definire e gestire i permessi per diversi tipi di utenti.
+- può aggiungere, cancellare e modificare prodotti
 
 ## Tech Stack
 - python 3.12.4
