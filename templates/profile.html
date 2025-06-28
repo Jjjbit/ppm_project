@@ -7,6 +7,7 @@
         <h2>Profile</h2>
         <p>Username: {{ user.username }}</p>
         <p>Email: {{ user.email }}</p>
+        <p> Address: {{ user.address }}</p>
         <p><a href="{% url 'buyer_orders' %}?from=profile">My Orders</a></p>
         {% if not user.is_store_manager %}
             <p><a href="{% url 'wishlist' %}?from=prodile">My Wishlist</a></p>

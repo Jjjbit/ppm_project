@@ -12,7 +12,7 @@ Questo progetto è un sito web di e-commerce completo che integra frontend e bac
 - non hanno un proprio negozio.
 - possono:
     - visualizzare tutti i prodotti come i visitors.
-    - modificare le informazioni personali, che comprendono username, email, password. 
+    - modificare le informazioni personali, che comprendono username, email, password e address. 
     - avere carrello e wishlist.
     - aggiungere prodotti al carrello e alla wishlist.
     - rimuovere prodotti dal carrello e dalla wishlist
@@ -27,7 +27,7 @@ Questo progetto è un sito web di e-commerce completo che integra frontend e bac
 - devono registrarsi e accedere come buyers.
 - non hanno né carrello né wishlist.
 - possono visualizzare tutti i prodotti del sito come visitors e buyers.
-- modificare le informazioni personali, che comprendono username, email, password.
+- modificare le informazioni personali, che comprendono username, email, password e address.
 - hanno un negozio, dove possono:
     - aggiungere, modificare ed eliminare prodotti.
     - gestire le Store Category che sono categorie private del negozio, create solo dal proprietario del negozio e visibili solo nella pagina del negozio.
