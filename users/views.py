@@ -28,7 +28,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         context["user"] = user
 
         if user.is_authenticated and user.is_store_manager:
-            context["store"] = user.store
+            context["store"] = getattr(user, "store", None)
         else:
             context["store"] = None
         return context
