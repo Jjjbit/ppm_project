@@ -4,6 +4,9 @@ from django.utils import timezone
 from users.models import CustomUser
 import os
 
+class Meta:
+    ordering = ['id']
+
 class Store(models.Model):
     owner = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='store')
     name = models.CharField(max_length=100)
