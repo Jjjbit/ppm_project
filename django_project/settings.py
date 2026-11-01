@@ -11,9 +11,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
@@ -22,15 +26,35 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 import os
 
 # SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = 'django-insecure-z9)2jg^%pr_b9^(87oskb0ti1r=d8o9m-0(29bft3*ow1$z%7j'
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-z9)2jg^%pr_b9^(87oskb0ti1r=d8o9m-0(29bft3*ow1$z%7j")
+#SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-z9)2jg^%pr_b9^(87oskb0ti1r=d8o9m-0(29bft3*ow1$z%7j")
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+
+if not SECRET_KEY:
+    raise ValueError("DJANGO_SECRET_KEY is not set")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 #DEBUG = True
-DEBUG = os.environ.get("DJANGO_DEBUG", "") != "False"
+#DEBUG = os.environ.get("DJANGO_DEBUG", "") != "False"
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ["web-production-0ae6.up.railway.app", "127.0.0.1"]
-CSRF_TRUSTED_ORIGINS = ['https:// web-production-0ae6.up.railway.app']
+#ALLOWED_HOSTS = ["web-production-0ae6.up.railway.app", "127.0.0.1"] # per deployment
+# ALLOWED_HOSTS = [
+#     "localhost",
+#     "127.0.0.1",
+# ] #per locale
+ALLOWED_HOSTS = os.environ.get(
+    "DJANGO_ALLOWED_HOSTS",
+    "localhost,127.0.0.1"
+).split(",")
+
+#CSRF_TRUSTED_ORIGINS = ['https://web-production-0ae6.up.railway.app'] # per deployment
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        "DJANGO_CSRF_TRUSTED_ORIGINS", ""
+    ).split(",")
+    if origin.strip()
+]
 
 
 # Application definition
