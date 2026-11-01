@@ -3,7 +3,7 @@
 #
 #ENTRYPOINT ["top", "-b"]
 
-FROM python:3.11-slim
+FROM python:3.12.4-slim
 
 # Set working directory
 WORKDIR /app
@@ -25,5 +25,7 @@ COPY . .
 EXPOSE 8000
 
 # Start Django application
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+#CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
 # al momento di deployment, runserver viene sotituito da Gunicorn
+#CMD ["sh", "-c", "python manage.py collectstatic --noinput && gunicorn django_project.wsgi:application --bind 0.0.0.0:${PORT:-8000}"]
